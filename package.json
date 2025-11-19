@@ -1,8 +1,8 @@
 {
-  "name": "theme-license-api",
+  "name": "dropi-license-api",
   "version": "1.0.0",
-  "main": "api/check-license.js",
-  "scripts": {
-    "start": "node api/check-license.js"
+  "main": "index.js",
+  "dependencies": {
+    "google-spreadsheet": "^3.4.0"
   }
 }
