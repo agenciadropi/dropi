@@ -1,44 +1,43 @@
-import { google } from "googleapis";
+const { GoogleSpreadsheet } = require('google-spreadsheet');
 
-export default async function handler(req, res) {
-  const { shop, key } = req.query;
-
-  if (!shop || !key) {
-    return res.status(400).json({ error: "Parâmetros faltando" });
-  }
-
+// Função principal da API
+module.exports = async function handler(req, res) {
   try {
-    const auth = new google.auth.GoogleAuth({
-      credentials: JSON.parse(process.env.GOOGLE_SHEETS_CREDENTIALS),
-      scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
-    });
+    // Parâmetros
+    const { domain, license } = req.query;
 
-    const sheets = google.sheets({ version: "v4", auth });
-
-    const spreadsheetId = process.env.GOOGLE_SHEETS_ID;
-    const range = "Respostas!A:D";
-
-    const response = await sheets.spreadsheets.values.get({
-      spreadsheetId,
-      range,
-    });
-
-    const rows = response.data.values || [];
-
-    const dataRows = rows.slice(1);
-
-    const found = dataRows.find(
-      row => row[2] === shop && row[3] === key
-    );
-
-    if (found) {
-      return res.status(200).json({ valid: true });
+    if (!domain || !license) {
+      return res.status(400).json({ error: 'Missing domain or license' });
     }
 
-    return res.status(403).json({ valid: false });
+    // Ler variáveis de ambiente
+    const sheetId = process.env.GOOGLE_SHEETS_ID;
+    const creds = JSON.parse(process.env.GOOGLE_SHEETS_CREDENTIALS);
 
+    if (!sheetId || !creds) {
+      return res.status(500).json({ error: 'Missing environment variables' });
+    }
+
+    // Conectar à planilha
+    const doc = new GoogleSpreadsheet(sheetId);
+    await doc.useServiceAccountAuth(creds);
+    await doc.loadInfo();
+
+    const sheet = doc.sheetsByIndex[0]; // pega a primeira aba
+    await sheet.loadCells(); // carrega todas as células
+
+    const rows = await sheet.getRows();
+
+    // Procurar pela licença
+    const found = rows.find(
+      row =>
+        row['Domínio da Loja']?.trim() === domain.trim() &&
+        row['Chave de Licença']?.trim() === license.trim()
+    );
+
+    return res.status(200).json({ valid: !!found });
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: "Erro interno ao validar licença" });
+    console.error('Error in check-license:', error);
+    return res.status(500).json({ error: 'Internal server error', details: error.message });
   }
-}
+};
