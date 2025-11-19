@@ -28,7 +28,12 @@ module.exports = async function handler(req, res) {
     await doc.loadInfo();
     console.log('Planilha carregada:', doc.title);
 
-    const sheet = doc.sheetsByIndex[0];
+    // Acessa a aba Form_Responses
+    const sheet = doc.sheetsByTitle['Form_Responses'];
+    if (!sheet) {
+      return res.status(500).json({ error: 'Aba Form_Responses não encontrada' });
+    }
+
     const rows = await sheet.getRows();
 
     // Função para normalizar nomes de coluna (remove espaços extras)
