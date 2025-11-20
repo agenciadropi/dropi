@@ -4,7 +4,8 @@
   "main": "index.js",
   "type": "module",
   "license": "MIT",
-"dependencies": {
-  "google-spreadsheet": "^5.0.2"
-}
+{
+  "dependencies": {
+    "google-spreadsheet": "^6.1.1"
+  }
 }
