@@ -2,6 +2,8 @@
   "name": "dropi-license-api",
   "version": "1.0.0",
   "main": "index.js",
+  "type": "module",
+  "license": "MIT",
   "dependencies": {
     "google-spreadsheet": "^4.3.0"
   }
